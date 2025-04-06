@@ -1,0 +1,25 @@
+<h2 class="text-lg font-semibold mb-2">Field Groups</h2>
+
+<ul class="space-y-2">
+  <li
+    *ngFor="let group of fieldGroups$ | async"
+    (click)="selectGroup(group)"
+    [class.bg-blue-100]="selectedId === group.id"
+    class="cursor-pointer p-2 rounded hover:bg-blue-50"
+  >
+    <div class="flex justify-between items-center">
+      <div>
+        <p class="font-medium">{{ group.name }}</p>
+        <p class="text-xs text-gray-500">{{ group.description }}</p>
+      </div>
+      <button (click)="deleteGroup(group.id); $event.stopPropagation()" class="text-red-500 text-sm">✖</button>
+    </div>
+  </li>
+</ul>
+
+<hr class="my-4">
+
+<h3 class="text-sm font-medium mb-1">Add Group</h3>
+<input type="text" [(ngModel)]="name" placeholder="Group Name" class="w-full mb-1 p-1 border rounded text-sm" />
+<input type="text" [(ngModel)]="description" placeholder="Description" class="w-full mb-2 p-1 border rounded text-sm" />
+<button (click)="addGroup()" class="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 w-full">Add</button>

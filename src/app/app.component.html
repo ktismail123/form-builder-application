@@ -1,3 +1,20 @@
-<div class="w-2.5 h-2.5 bg-[red]">
-
-</div>
+<div class="flex h-screen">
+    <!-- Left Pane: Field Groups -->
+    <div class="w-1/5 border-r bg-gray-100 p-4">
+      <app-left-pane></app-left-pane>
+    </div>
+  
+    <!-- Middle Pane: Form Canvas -->
+    <div class="flex-1 p-4 overflow-auto">
+      <app-middle-pane></app-middle-pane>
+    </div>
+  
+    <!-- Right Pane: Element Library -->
+    <div class="w-1/5 border-l bg-gray-50 p-4">
+      <app-right-pane></app-right-pane>
+    </div>
+  </div>
+  
+  <!-- Right Drawer for Element Properties -->
+  <!-- <app-right-drawer></app-right-drawer> -->
+  
