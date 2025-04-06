@@ -1,25 +1,20 @@
-<h2 class="text-lg font-semibold mb-2">Field Groups</h2>
-
-<ul class="space-y-2">
-  <li
-    *ngFor="let group of fieldGroups$ | async"
-    (click)="selectGroup(group)"
-    [class.bg-blue-100]="selectedId === group.id"
-    class="cursor-pointer p-2 rounded hover:bg-blue-50"
-  >
-    <div class="flex justify-between items-center">
-      <div>
-        <p class="font-medium">{{ group.name }}</p>
-        <p class="text-xs text-gray-500">{{ group.description }}</p>
-      </div>
-      <button (click)="deleteGroup(group.id); $event.stopPropagation()" class="text-red-500 text-sm">✖</button>
+<div class="p-6 max-w-md mx-auto bg-white rounded-lg">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold text-gray-800">Field Groups</h2>
+      <button (click)="handleCreateNew()" class="flex items-center text-blue-500 hover:text-blue-700">
+        <span class="material-icons mr-1">add</span>
+        <span>Create new</span>
+      </button>
     </div>
-  </li>
-</ul>
-
-<hr class="my-4">
-
-<h3 class="text-sm font-medium mb-1">Add Group</h3>
-<input type="text" [(ngModel)]="name" placeholder="Group Name" class="w-full mb-1 p-1 border rounded text-sm" />
-<input type="text" [(ngModel)]="description" placeholder="Description" class="w-full mb-2 p-1 border rounded text-sm" />
-<button (click)="addGroup()" class="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 w-full">Add</button>
+  
+    <div cdkDropList (cdkDropListDropped)="drop($event)" class="space-y-3">
+      <div *ngFor="let group of fieldGroups; let i = index" cdkDrag (click)="selectGroup(group)"
+           [ngClass]="{'!border-blue-500': group.id == selectedId, 'hover:bg-gray-50': !group}"
+           class="px-4 py-3 rounded-md border border-gray-200 cursor-pointer">
+        <div class="flex items-center">
+          <span class="material-icons text-gray-400 mr-3" cdkDragHandle>drag_indicator</span>
+          <span class="text-gray-700">{{ group.name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>

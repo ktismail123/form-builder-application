@@ -1,15 +1,17 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { FieldGroup } from '../models/field-group.model';
+import { FieldGroup, FieldGroupRight } from '../models/field-group.model';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable({ providedIn: 'root' })
 export class FieldGroupService {
-  private fieldGroupsSubject = new BehaviorSubject<FieldGroup[]>([]);
+  private fieldGroupsSubject = new BehaviorSubject<FieldGroupRight[]>([]);
   fieldGroups$ = this.fieldGroupsSubject.asObservable();
 
-  private selectedGroupSubject = new BehaviorSubject<FieldGroup | null>(null);
+  private selectedGroupSubject = new BehaviorSubject<FieldGroupRight | null>(null);
   selectedGroup$ = this.selectedGroupSubject.asObservable();
+
+
 
   constructor() {
     const saved = localStorage.getItem('fieldGroups');
@@ -17,15 +19,16 @@ export class FieldGroupService {
     this.fieldGroupsSubject.next(list);
   }
 
-  private updateLocalStorage(groups: FieldGroup[]) {
+  private updateLocalStorage(groups: FieldGroupRight[]) {
     localStorage.setItem('fieldGroups', JSON.stringify(groups));
   }
 
   addGroup(name: string, description?: string) {
-    const newGroup: FieldGroup = {
+    const newGroup: FieldGroupRight = {
       id: uuidv4(),
       name,
-      description
+      description,
+      elements: []
     };
     const updated = [...this.fieldGroupsSubject.value, newGroup];
     this.fieldGroupsSubject.next(updated);
@@ -38,7 +41,19 @@ export class FieldGroupService {
     this.updateLocalStorage(updated);
   }
 
-  selectGroup(group: FieldGroup) {
+  selectGroup(group: FieldGroupRight) {
     this.selectedGroupSubject.next(group);
   }
+
+  setSelectedGroup(group: FieldGroupRight) {
+    this.selectedGroupSubject.next(group);
+  }
+
+  updateElements(elements: FieldGroupRight['elements']) {
+    const current = this.selectedGroupSubject.value;
+    if (current) {
+      this.selectedGroupSubject.next({ ...current, elements });
+    }
+  }
+
 }

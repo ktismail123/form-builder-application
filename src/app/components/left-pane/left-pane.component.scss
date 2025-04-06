@@ -1,0 +1,17 @@
+::ng-deep .cdk-drag-preview {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    width: 100%; // important to match container width
+    box-sizing: border-box;
+    opacity: 1;
+  }
+  
+  ::ng-deep .cdk-drag-placeholder {
+    visibility: hidden; // placeholder won’t cause layout shift
+  }
+  
+  ::ng-deep .cdk-drag-animating {
+    transition: transform 200ms ease;
+  }
+  
