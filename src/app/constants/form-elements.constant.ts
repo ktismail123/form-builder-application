@@ -49,7 +49,7 @@ export const FORM_ELEMENTS: { category: string; items: FormElement[] }[] = [
         label: 'Date & Time',
         description: 'Select date & time from picker.',
         icon: 'fas fa-calendar',
-        inputType: 'date'
+        inputType: 'datetime-local'
       },
     ],
   },
