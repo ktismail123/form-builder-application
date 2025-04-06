@@ -1,117 +1,96 @@
-<!-- <div
-  class="h-full border rounded p-4 bg-gray-50"
-  (drop)="onDrop($event)"
-  (dragover)="$event.preventDefault()"
->
-  <h2 class="text-lg font-semibold mb-3">Form Elements</h2>
-
-  <div *ngIf="selectedGroup; else noGroup">
+@if(selectedGroup) {
+  <div class="rounded-lg bg-white shadow mt-3">
+    <div class="px-6 py-1">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-2xl font-semibold text-gray-800">
+          {{ selectedGroup?.name }}
+        </h2>
+        <div class="flex space-x-2">
+          <button
+            (click)="editElement(selectedGroup)"
+            class="p-2 text-gray-500 hover:text-blue-700 cursor-pointer"
+          >
+            <i class="fas fa-pencil-alt"></i>
+          </button>
+          <div class="relative">
+            @if(copied) {
+              <span class="absolute -top-2 left-2 text-[12px] text-[green]">copied!</span>
+            }
+            <button
+              (click)="copyElement(selectedGroup)"
+              class="p-2 text-gray-500 hover:text-[green] cursor-pointer"
+            >
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+          <button
+            (click)="deleteItem(selectedGroup)"
+            class="p-2 text-gray-500 hover:text-red-500 cursor-pointer"
+          >
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+      </div>
+      <p class="text-gray-500">
+        {{ selectedGroup?.description || "Add description..." }}
+      </p>
+    </div>
+  </div>
+  
+  <div class="rounded-lg h-full flex flex-col mt-5">
+    <!-- Form elements list -->
     <div
-      cdkDropList
-      [cdkDropListData]="selectedGroup.elements"
-      (cdkDropListDropped)="reorder($event)"
-      class="space-y-2"
+      class="flex-1 overflow-auto"
+      (drop)="onDrop($event)"
+      (dragover)="$event.preventDefault()"
     >
       <div
-        *ngFor="let el of selectedGroup.elements"
-        cdkDrag
-        class="bg-white border rounded p-2 shadow-sm cursor-pointer hover:bg-gray-100"
-        (click)="onSelectElement(el)"
+        cdkDropList
+        (cdkDropListDropped)="handleDragEnd($event)"
+        class="space-y-4"
       >
-        {{ el.label }}
-      </div>
-    </div>
-  </div>
-
-  <ng-template #noGroup>
-    <p class="text-gray-500">Please select a field group from the left pane.</p>
-  </ng-template>
-</div> -->
-
-<div class="rounded-lg bg-white shadow mt-3">
-<div class="p-6 ">
-  <div class="flex justify-between items-center mb-2">
-    <h2 class="text-2xl font-semibold text-gray-800">
-      {{ selectedGroup?.name }}
-    </h2>
-    <div class="flex space-x-2">
-      <button
-        (click)="editElement(selectedGroup)"
-        class="p-2 text-gray-500 hover:text-gray-700"
-      >
-        <i class="fas fa-pencil-alt"></i>
-      </button>
-      <button
-        (click)="copyElement(selectedGroup)"
-        class="p-2 text-gray-500 hover:text-gray-700"
-      >
-        <i class="fas fa-copy"></i>
-      </button>
-      <button
-        (click)="deleteElement(selectedGroup)"
-        class="p-2 text-gray-500 hover:text-red-500"
-      >
-        <i class="fas fa-trash-alt"></i>
-      </button>
-    </div>
-  </div>
-  <p class="text-gray-500">
-    {{ selectedGroup?.description || "Add description..." }}
-  </p>
-</div>
-</div>
-<div class=" rounded-lg  h-full flex flex-col mt-5">
-  <!-- Group header with title and actions -->
-  
-
-  <!-- Form elements list -->
-  <div
-    class="flex-1 overflow-auto"
-    (drop)="onDrop($event)"
-    (dragover)="$event.preventDefault()"
-  >
-    <div
-      cdkDropList
-      (cdkDropListDropped)="handleDragEnd($event)"
-      class="space-y-4"
-    >
-      <div *ngFor="let element of selectedGroup?.elements" cdkDrag>
-        <div class="bg-white rounded-lg shadow-sm">
-          <div class="p-4">
-            <div class="flex justify-between items-center">
-              <h3 class="font-medium text-gray-800">{{ element.label }}</h3>
-              <div class="flex space-x-2">
-                <button
-                  (click)="editElement(element)"
-                  class="text-gray-400 hover:text-gray-600"
-                >
-                  <i class="fas fa-pencil-alt"></i>
-                </button>
-                <button
-                  (click)="copyElement(element)"
-                  class="text-gray-400 hover:text-gray-600"
-                >
-                  <i class="fas fa-copy"></i>
-                </button>
-                <button
-                  (click)="deleteElement(element)"
-                  class="text-gray-400 hover:text-red-500"
-                >
-                  <i class="fas fa-trash-alt"></i>
-                </button>
+        <div *ngFor="let element of selectedGroup?.elements" cdkDrag>
+          <div class="bg-white rounded-lg shadow-sm">
+            <div class="p-4">
+              <div class="flex justify-between items-center">
+                <h3 class="font-medium text-gray-800">{{ element.label }}</h3>
+                <div class="flex space-x-2">
+                  <button
+                    (click)="editElement(element)"
+                    class="text-gray-400 hover:text-gray-600"
+                  >
+                    <i class="fas fa-pencil-alt"></i>
+                  </button>
+                  <button
+                    (click)="copyElement(element)"
+                    class="text-gray-400 hover:text-gray-600"
+                  >
+                    <i class="fas fa-copy"></i>
+                  </button>
+                  <button
+                    (click)="deleteElement(element)"
+                    class="text-gray-400 hover:text-red-500"
+                  >
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
               </div>
+              <p class="text-gray-500 text-sm">{{ element.placeholder }}</p>
             </div>
-            <p class="text-gray-500 text-sm">{{ element.placeholder }}</p>
-          </div>
-          <div class="p-4">
-            <input
-              type="text"
-              placeholder="Type here..."
-              class="border border-[#e1e1e1] rounded-md p-2 w-full"
-            />
+            <div class="p-4">
+              <input
+                [type]="element.type"
+                placeholder="Type here..."
+                class="border border-[#e1e1e1] rounded-md p-2 w-full"
+              />
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+} @else {
+  <div class="h-[200px] border-4 border-dashed border-gray-400 rounded-lg flex items-center justify-center text-gray-500 text-lg">
+    Select any form Drag and drop here
+  </div>
+}

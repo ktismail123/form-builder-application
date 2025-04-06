@@ -8,7 +8,7 @@ export type FormElementType =
   | 'dropdown'
   | 'single-select'
   | 'multi-select'
-  | 'file-upload';
+  | 'file';
 
 export interface FormElement {
   type: FormElementType;
