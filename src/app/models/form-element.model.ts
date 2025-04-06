@@ -14,5 +14,7 @@ export interface FormElement {
   type: FormElementType;
   label: string;
   icon: string;
-  description: string
+  description: string,
+  inputType: string,
+  options?: { value: any; label: string }[]
 }

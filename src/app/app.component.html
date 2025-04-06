@@ -11,6 +11,10 @@
 
   <!-- Right Pane: Element Library -->
   <div class="w-1/4 bg-white p-4 overflow-y-auto">
-    <app-right-pane></app-right-pane>
+    @if(editMode){
+      <app-right-drawer/>
+    }@else {
+      <app-right-pane></app-right-pane>
+    }
   </div>
 </div>

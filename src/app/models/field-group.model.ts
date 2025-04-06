@@ -19,5 +19,8 @@ export interface FieldElement {
   label: string;
   placeholder?: string;
   required?: boolean;
-  options?: string[]; // for dropdown, etc.
+  options?: {value: string, label: string}[]; // for dropdown, etc.
+  inputType?: string,
+  description: string;
+
 }

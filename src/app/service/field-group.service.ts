@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { FieldGroup, FieldGroupRight } from '../models/field-group.model';
 import { v4 as uuidv4 } from 'uuid';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Injectable({ providedIn: 'root' })
 export class FieldGroupService {
@@ -11,10 +12,14 @@ export class FieldGroupService {
   private selectedGroupSubject = new BehaviorSubject<FieldGroupRight | null>(null);
   selectedGroup$ = this.selectedGroupSubject.asObservable();
 
+  clickedForEdit = signal<any>(null);
+  clickedForEdit$ = toObservable(this.clickedForEdit);
+  
+  storageDataUpdates = signal<boolean>(false);
+  storageDataUpdates$ = toObservable(this.storageDataUpdates);
+
+
   constructor() {
-    // const saved = localStorage.getItem('fieldGroups');
-    // const list = saved ? JSON.parse(saved) : [];
-    // this.fieldGroupsSubject.next(list);
     try {
       const saved = localStorage.getItem('fieldGroups');
       const list: FieldGroupRight[] = saved ? JSON.parse(saved) : [];
