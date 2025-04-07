@@ -37,13 +37,11 @@ export class MiddlePaneComponent implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((group) => {
         this.selectedGroup = group;
-        console.log(this.selectedGroup);
       });
 
     this.fieldGroupService.storageDataUpdates$
       .pipe(takeUntil(this.destroy$))
       .subscribe((res) => {
-        console.log(res);
         if (res) {
           const raw = localStorage.getItem('fieldGroups');
           const selectedGroupId = localStorage.getItem('selectedId');
@@ -89,9 +87,7 @@ export class MiddlePaneComponent implements OnDestroy {
     this.fieldGroupService.updateElements(items);
   }
 
-  onSelectElement(element: FieldElement) {
-    console.log('Selected Element:', element);
-  }
+  onSelectElement(element: FieldElement) {}
 
   editGroup(item: any): void {
     this.dialog
@@ -128,7 +124,6 @@ export class MiddlePaneComponent implements OnDestroy {
     navigator.clipboard
       .writeText(item?.name)
       .then(() => {
-        console.log('Text copied to clipboard');
         setTimeout(() => {
           this.copied = false;
         }, 1000);
@@ -178,7 +173,6 @@ export class MiddlePaneComponent implements OnDestroy {
   }
 
   copyElement(item: any, index: number): void {
-    console.log(item);
     this.copiedIndex = index;
     // Placeholder for future logic
     this.copiedElement = true;
