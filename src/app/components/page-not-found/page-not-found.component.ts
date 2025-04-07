@@ -5,14 +5,12 @@ import { Router } from '@angular/router';
   selector: 'app-page-not-found',
   imports: [],
   templateUrl: './page-not-found.component.html',
-  styleUrl: './page-not-found.component.scss'
+  styleUrl: './page-not-found.component.scss',
 })
 export class PageNotFoundComponent {
-
   private router = inject(Router);
 
   navigate(): void {
-    this.router.navigateByUrl('/home')
+    this.router.navigateByUrl('/home');
   }
-
 }

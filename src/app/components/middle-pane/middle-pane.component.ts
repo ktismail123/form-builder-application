@@ -3,10 +3,9 @@ import {
   DragDropModule,
   moveItemInArray,
 } from '@angular/cdk/drag-drop';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import {
   FieldElement,
-  FieldGroup,
   FieldGroupRight,
 } from '../../models/field-group.model';
 import { FieldGroupService } from '../../service/field-group.service';
@@ -14,51 +13,52 @@ import { v4 as uuidv4 } from 'uuid';
 import { NgFor, NgIf } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { FormGroupComponent } from '../form-group/form-group.component';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-middle-pane',
-  imports: [DragDropModule, NgIf, NgFor],
+  imports: [DragDropModule, NgFor],
   templateUrl: './middle-pane.component.html',
   styleUrl: './middle-pane.component.scss',
 })
-export class MiddlePaneComponent {
+export class MiddlePaneComponent implements OnDestroy {
   private dialog = inject(MatDialog);
   private fgService = inject(FieldGroupService);
   private fieldGroupService = inject(FieldGroupService);
+  private destroy$ = new Subject<void>();
 
   selectedGroup: FieldGroupRight | null = null;
   copied = false;
+  copiedElement = false;
+  copiedIndex = 0;
 
   constructor() {
-    this.fieldGroupService.selectedGroup$.subscribe((group) => {
-      this.selectedGroup = group;
-      console.log(this.selectedGroup);
-    });
-
-    this.fieldGroupService.storageDataUpdates$.subscribe((res) => {
-      console.log(res);
-
-      if (res) {
-        const raw = localStorage.getItem('fieldGroups');
-
-        const selectedGroupId = localStorage.getItem('selectedId'); // ID of the group
-
-        if (!raw || !selectedGroupId) return;
-
-        const data = JSON.parse(raw);
-
-        // Find the group
-        const groupIndex = data.findIndex(
-          (group: any) => group.id === selectedGroupId
-        );
-        if (groupIndex === -1) return;
-
-        const group = data[groupIndex];
+    this.fieldGroupService.selectedGroup$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((group) => {
         this.selectedGroup = group;
-      }
-      this.fieldGroupService.storageDataUpdates.set(false);
+        console.log(this.selectedGroup);
+      });
 
-    });
+    this.fieldGroupService.storageDataUpdates$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((res) => {
+        console.log(res);
+        if (res) {
+          const raw = localStorage.getItem('fieldGroups');
+          const selectedGroupId = localStorage.getItem('selectedId');
+          if (!raw || !selectedGroupId) return;
+
+          const data = JSON.parse(raw);
+          const groupIndex = data.findIndex(
+            (group: any) => group.id === selectedGroupId
+          );
+          if (groupIndex === -1) return;
+
+          this.selectedGroup = data[groupIndex];
+        }
+        this.fieldGroupService.storageDataUpdates.set(false);
+      });
   }
 
   onDrop(event: DragEvent) {
@@ -67,7 +67,6 @@ export class MiddlePaneComponent {
     const json = event.dataTransfer?.getData('application/json');
     if (json) {
       const draggedElement = JSON.parse(json);
-      console.log(draggedElement);
       const newField: FieldElement = {
         id: uuidv4(),
         type: draggedElement.type,
@@ -91,7 +90,6 @@ export class MiddlePaneComponent {
   }
 
   onSelectElement(element: FieldElement) {
-    // open right drawer (next step)
     console.log('Selected Element:', element);
   }
 
@@ -107,15 +105,15 @@ export class MiddlePaneComponent {
         },
       })
       .afterClosed()
+      .pipe(takeUntil(this.destroy$))
       .subscribe((res) => {
-        console.log(item);
         if (res.success) {
           this.fgService.editGroup(
             item.id,
             res?.data?.name,
             res?.data?.description
           );
-          this.fgService.selectGroup({
+          this.fgService.setSelectedGroup({
             ...item,
             name: res?.data?.name,
             description: res?.data?.description,
@@ -124,13 +122,13 @@ export class MiddlePaneComponent {
         }
       });
   }
+
   copyItem(item: any): void {
     this.copied = true;
     navigator.clipboard
       .writeText(item?.name)
       .then(() => {
         console.log('Text copied to clipboard');
-
         setTimeout(() => {
           this.copied = false;
         }, 1000);
@@ -146,46 +144,55 @@ export class MiddlePaneComponent {
     );
 
     if (isConfirmed) {
-      this.fgService.deleteGroup(item.id).subscribe((res) => {
-        if (res.success) {
-          this.selectedGroup = null;
-        }
-      });
-      console.log('Item deleted:', item);
-      alert('Succesfully Deleted');
-    } else {
-      // Cancelled
-      console.log('Delete cancelled');
+      this.fgService.deleteGroup(item.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((res) => {
+          if (res.success) {
+            this.selectedGroup = null;
+          }
+        });
+      alert('Successfully Deleted');
     }
   }
 
   deleteElement(item: any) {
-    console.log(item);
-
     const isConfirmed = window.confirm(
       'Are you sure you want to delete this item?'
     );
 
     if (isConfirmed) {
-      this.fgService.deleteFormElement(item.id).subscribe((res) => {
-        if (res.success) {
-          // this.selectedGroup = null;
-          this.selectedGroup = {
-            ...this.selectedGroup,
-            elements: (this.selectedGroup?.elements ?? []).filter(
-              (el_item) => el_item.id !== item.id
-            ),
-          } as FieldGroupRight;
-        }
-      });
-      alert('Succesfully Deleted');
-    } else {
-      // Cancelled
-      console.log('Delete cancelled');
+      this.fgService.deleteFormElement(item.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((res) => {
+          if (res.success) {
+            this.selectedGroup = {
+              ...this.selectedGroup,
+              elements: (this.selectedGroup?.elements ?? []).filter(
+                (el_item) => el_item.id !== item.id
+              ),
+            } as FieldGroupRight;
+          }
+        });
+      alert('Successfully Deleted');
     }
   }
 
-  copyElement(event: any): void {}
+  copyElement(item: any, index: number): void {
+    console.log(item);
+    this.copiedIndex = index;
+    // Placeholder for future logic
+    this.copiedElement = true;
+    navigator.clipboard
+      .writeText(item?.name)
+      .then(() => {
+        setTimeout(() => {
+          this.copiedElement = false;
+        }, 1000);
+      })
+      .catch((err) => {
+        console.error('Failed to copy text: ', err);
+      });
+  }
 
   editElement(event: any) {
     this.fgService.clickedForEdit.set({ data: event });
@@ -199,7 +206,6 @@ export class MiddlePaneComponent {
         event.currentIndex
       );
 
-      // Now update the local storage
       const allGroups = JSON.parse(localStorage.getItem('fieldGroups') || '[]');
 
       const updatedGroups = allGroups.map((group: any) => {
@@ -214,5 +220,10 @@ export class MiddlePaneComponent {
 
       localStorage.setItem('fieldGroups', JSON.stringify(updatedGroups));
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

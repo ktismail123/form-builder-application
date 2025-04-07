@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -8,7 +8,8 @@ import {
 } from '@angular/forms';
 import { FieldGroupService } from '../../service/field-group.service';
 import { NgFor, NgIf } from '@angular/common';
-import { from } from 'rxjs';
+import { FieldElement, FieldGroupRight } from '../../models/field-group.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-right-drawer',
@@ -17,27 +18,35 @@ import { from } from 'rxjs';
   standalone: true,
   imports: [ReactiveFormsModule, NgFor, NgIf],
 })
-export class RightDrawerComponent implements OnInit {
+export class RightDrawerComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private fgService = inject(FieldGroupService);
 
   fieldForm!: FormGroup;
   isAction = false;
   inputType!: string;
-  selectedElement: any;
+  selectedElement: FieldElement | null = null;
+  private subscription = new Subscription();
 
   ngOnInit(): void {
     this.initForm();
 
-    this.fgService.clickedForEdit$.subscribe((res) => {
-      this.inputType = res?.data?.inputType;
-      this.selectedElement = res?.data;
+    const sub = this.fgService.clickedForEdit$.subscribe((res) => {
+      const data = res?.data;
+      if (!data) return;
 
-      this.isAction = ['select', 'multi-select', 'radio', 'checkbox'].includes(
-        this.inputType
-      );
-      this.setFormData(res.data);
+      this.inputType = data.inputType;
+      this.selectedElement = data;
+
+      this.isAction = ['select', 'multi-select', 'radio', 'checkbox'].includes(this.inputType);
+      this.setFormData(data);
     });
+
+    this.subscription.add(sub);
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   initForm(): void {
@@ -53,7 +62,7 @@ export class RightDrawerComponent implements OnInit {
     });
   }
 
-  setFormData(data: any): void {
+  setFormData(data: FieldElement): void {
     this.fieldForm.patchValue({
       name: data.label || '',
       description: data.description || '',
@@ -64,12 +73,11 @@ export class RightDrawerComponent implements OnInit {
       max: data.max || '',
     });
 
-    const optionsArray = this.options;
-    optionsArray.clear();
+    this.options.clear();
 
     if (Array.isArray(data.options)) {
-      data.options.forEach((opt: any) => {
-        optionsArray.push(
+      data.options.forEach(opt => {
+        this.options.push(
           this.fb.group({
             label: [opt.label || '', Validators.required],
             value: [opt.value || '', Validators.required],
@@ -98,31 +106,32 @@ export class RightDrawerComponent implements OnInit {
 
   onSubmit(): void {
     if (this.fieldForm.invalid) return;
-  
+
     const formValue = this.fieldForm.value;
-    const raw = localStorage.getItem('fieldGroups');
-    const selectedGroupId = localStorage.getItem('selectedId'); // ID of the group
-    const selectedElementId = this.selectedElement?.id; // ID of the element inside elements array
-  
-    if (!raw || !selectedGroupId || !selectedElementId) return;
-  
-    const data = JSON.parse(raw);
-  
-    // Find the group
-    const groupIndex = data.findIndex((group: any) => group.id === selectedGroupId);
+    const selectedGroupId = localStorage.getItem('selectedId');
+    const selectedElementId = this.selectedElement?.id;
+
+    if (!selectedGroupId || !selectedElementId) return;
+
+    let groups: FieldGroupRight[] = [];
+
+    try {
+      const raw = localStorage.getItem('fieldGroups');
+      groups = raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      console.error('Error parsing fieldGroups from localStorage:', err);
+      return;
+    }
+
+    const groupIndex = groups.findIndex(group => group.id === selectedGroupId);
     if (groupIndex === -1) return;
-  
-    const group = data[groupIndex];
-  
-    // Find the element inside the group
-    const elementIndex = group.elements.findIndex((el: any) => el.id === selectedElementId);
+
+    const elementIndex = groups[groupIndex].elements.findIndex(el => el.id === selectedElementId);
     if (elementIndex === -1) return;
-  
-    // Update the element
-    const updatedElement = {
-      ...group.elements[elementIndex],
+
+    const updatedElement: FieldElement = {
+      ...groups[groupIndex].elements[elementIndex],
       label: formValue.name,
-      name: formValue.name,
       description: formValue.description,
       placeholder: formValue.placeholder,
       required: formValue.required,
@@ -131,19 +140,15 @@ export class RightDrawerComponent implements OnInit {
       max: formValue.max,
       options: this.isAction ? formValue.options : []
     };
-  
-    // Replace element in group
-    data[groupIndex].elements[elementIndex] = updatedElement;
-  
-    // Save back to localStorage
-    localStorage.setItem('fieldGroups', JSON.stringify(data));
-  
+
+    groups[groupIndex].elements[elementIndex] = updatedElement;
+
+    localStorage.setItem('fieldGroups', JSON.stringify(groups));
+
     this.fgService.clickedForEdit.set(null);
     this.fgService.storageDataUpdates.set(true);
-    alert('Succesfully Updated');
-
+    alert('Successfully Updated');
   }
-  
 
   onCancel(): void {
     this.fgService.clickedForEdit.set(null);

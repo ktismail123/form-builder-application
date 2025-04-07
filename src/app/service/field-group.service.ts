@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { FieldGroup, FieldGroupRight } from '../models/field-group.model';
+import { FieldGroupRight } from '../models/field-group.model';
 import { v4 as uuidv4 } from 'uuid';
 import { toObservable } from '@angular/core/rxjs-interop';
 
@@ -14,27 +14,46 @@ export class FieldGroupService {
 
   clickedForEdit = signal<any>(null);
   clickedForEdit$ = toObservable(this.clickedForEdit);
-  
+
   storageDataUpdates = signal<boolean>(false);
   storageDataUpdates$ = toObservable(this.storageDataUpdates);
 
-
   constructor() {
+    this.refreshFromStorage();
+  }
+
+  // ===============================
+  // 🔁 Storage Helper Methods
+  // ===============================
+
+  private getLocalGroups(): FieldGroupRight[] {
     try {
-      const saved = localStorage.getItem('fieldGroups');
-      const list: FieldGroupRight[] = saved ? JSON.parse(saved) : [];
-      this.fieldGroupsSubject.next(Array.isArray(list) ? list : []);
+      const raw = localStorage.getItem('fieldGroups');
+      return raw ? JSON.parse(raw) : [];
     } catch (error) {
       console.error('Failed to parse fieldGroups from local storage:', error);
-      this.fieldGroupsSubject.next([]);
+      return [];
     }
+  }
+
+  private getSelectedId(): string | null {
+    return localStorage.getItem('selectedId');
   }
 
   private updateLocalStorage(groups: FieldGroupRight[]) {
     localStorage.setItem('fieldGroups', JSON.stringify(groups));
   }
 
-  addGroup(name: string, description?: string):Observable<any> {
+  refreshFromStorage() {
+    const list = this.getLocalGroups();
+    this.fieldGroupsSubject.next(Array.isArray(list) ? list : []);
+  }
+
+  // ===============================
+  // ➕ Add Group
+  // ===============================
+
+  addGroup(name: string, description?: string): Observable<any> {
     const newGroup: FieldGroupRight = {
       id: uuidv4(),
       name,
@@ -44,12 +63,16 @@ export class FieldGroupService {
     const updated = [...this.fieldGroupsSubject.value, newGroup];
     this.fieldGroupsSubject.next(updated);
     this.updateLocalStorage(updated);
-    return of(newGroup)
+    return of(newGroup);
   }
 
-  editGroup(id: string, updatedName: string, updatedDescription?: string) {
+  // ===============================
+  // ✏️ Edit Group
+  // ===============================
+
+  editGroup(id: string, updatedName: string, updatedDescription?: string): void {
     const currentGroups = this.fieldGroupsSubject.value;
-  
+
     const updatedGroups = currentGroups.map(group => {
       if (group.id === id) {
         return {
@@ -60,87 +83,72 @@ export class FieldGroupService {
       }
       return group;
     });
-  
+
     this.fieldGroupsSubject.next(updatedGroups);
     this.updateLocalStorage(updatedGroups);
   }
-  
 
-  deleteGroup(id: string):  Observable<any> {
+  // ===============================
+  // ❌ Delete Group
+  // ===============================
+
+  deleteGroup(id: string): Observable<{ success: boolean }> {
     const updated = this.fieldGroupsSubject.value.filter(g => g.id !== id);
     this.fieldGroupsSubject.next(updated);
     this.updateLocalStorage(updated);
-    return of({success: true})
+    return of({ success: true });
   }
 
-  selectGroup(group: FieldGroupRight) {
-    this.selectedGroupSubject.next(group);
-  }
+  // ===============================
+  // ✅ Select Group
+  // ===============================
 
   setSelectedGroup(group: FieldGroupRight) {
     this.selectedGroupSubject.next(group);
   }
 
+  // ===============================
+  // 🔄 Update Elements
+  // ===============================
+
   updateElements(elements: FieldGroupRight['elements']) {
     const current = this.selectedGroupSubject.value;
-    if (current) {
-      this.selectedGroupSubject.next({ ...current, elements });
-      console.log({ ...current, elements });
-      
-      const latestWithElements = { ...current, elements };
-      // this.updateLocalStorage(latestWithElements);
-      this.updateFormElement(latestWithElements);
-    }
+    if (!current) return;
+
+    const updatedGroup = { ...current, elements };
+    this.selectedGroupSubject.next(updatedGroup);
+    this.updateFormElement(updatedGroup);
   }
 
-  updateFormElement(inewElements: FieldGroupRight) {
-    // Get data from local storage
-    const raw = localStorage.getItem('fieldGroups');
-    const id = localStorage.getItem('selectedId');
-    if (!raw) return;
-  
-    // Parse it
-    const data = JSON.parse(raw);
-  
-    // Find the index
-    const index = data.findIndex((item: any) => item.id === id);
+  updateFormElement(updatedGroup: FieldGroupRight) {
+    const groups = this.getLocalGroups();
+    const index = groups.findIndex(g => g.id === updatedGroup.id);
     if (index === -1) return;
-  
-    // Update the elements array
-    data[index] = inewElements;
-  
-    // Save it back to local storage
-    // localStorage.setItem('canvasData', JSON.stringify(data));
-    this.updateLocalStorage(data);
 
+    groups[index] = updatedGroup;
+    this.updateLocalStorage(groups);
+    this.fieldGroupsSubject.next(groups);
   }
-  
+
+  // ===============================
+  // 🗑️ Delete Single Form Element
+  // ===============================
+
   deleteFormElement(el_id: string): Observable<{ success: boolean }> {
-    const raw = localStorage.getItem('fieldGroups');
-    const id = localStorage.getItem('selectedId');
-    if (!raw || !id) return of({ success: false });
-  
-    const data = JSON.parse(raw);
-  
-    // Find the group by ID
-    const index = data.findIndex((group: any) => group.id === id);
+    const data = this.getLocalGroups();
+    const id = this.getSelectedId();
+    if (!id) return of({ success: false });
+
+    const index = data.findIndex(group => group.id === id);
     if (index === -1) return of({ success: false });
-  
+
     const group = data[index];
-  
-    // Filter out the element to delete
-    group.elements = group.elements.filter((el: any) => el.id !== el_id);
-  
-    // Replace the group in the array
+    group.elements = group.elements.filter(el => el.id !== el_id);
     data[index] = group;
-  
-    // Save back to local storage
+
     this.updateLocalStorage(data);
     this.fieldGroupsSubject.next(data);
-  
+
     return of({ success: true });
   }
-  
-  
-
 }

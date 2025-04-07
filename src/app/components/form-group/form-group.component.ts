@@ -9,27 +9,30 @@ import {
 
 @Component({
   selector: 'app-form-group',
-  imports: [FormsModule, MatDialogClose, TitleCasePipe],
+  standalone: true,
+  imports: [FormsModule, TitleCasePipe, MatDialogClose],
   templateUrl: './form-group.component.html',
-  styleUrl: './form-group.component.scss',
+  styleUrls: ['./form-group.component.scss'],
 })
 export class FormGroupComponent {
-  injectedData: { mode: 'create' | 'edit', name: string, description: string } = inject(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<FormGroupComponent>);
+  private data = inject<{ mode: 'create' | 'edit'; name: string; description: string }>(MAT_DIALOG_DATA);
 
-  name = this.injectedData?.name || '';
-  description = this.injectedData?.description || '';
+  name: string = this.data?.name || '';
+  description: string = this.data?.description || '';
   submitted = false;
+  injectedData = this.data;
 
   onSubmit(): void {
     this.submitted = true;
 
-    if (this.name && this.description) {
-      const data = {
-        name: this.name,
-        description: this.description,
-      };
-      this.dialogRef.close({ success: true, data });
-    }
+    if (!this.name || !this.description) return;
+
+    const formData = {
+      name: this.name.trim(),
+      description: this.description.trim(),
+    };
+
+    this.dialogRef.close({ success: true, data: formData });
   }
 }

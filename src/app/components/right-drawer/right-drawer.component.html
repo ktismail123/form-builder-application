@@ -1,105 +1,132 @@
 <form [formGroup]="fieldForm" (ngSubmit)="onSubmit()" class="p-4 space-y-4">
-    <!-- Name -->
+  <!-- Name -->
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+    <input
+      formControlName="name"
+      type="text"
+      placeholder="Enter field name"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400"
+    />
+  </div>
+
+  <!-- Description -->
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1"
+      >Description</label
+    >
+    <input
+      formControlName="description"
+      type="text"
+      placeholder="Enter field description"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400"
+    />
+  </div>
+
+  <!-- Placeholder -->
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1"
+      >Placeholder</label
+    >
+    <input
+      formControlName="placeholder"
+      type="text"
+      placeholder="Enter input placeholder"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400"
+    />
+  </div>
+
+  <!-- Required -->
+  <div class="flex items-center gap-2">
+    <input type="checkbox" formControlName="required" class="h-4 w-4" />
+    <label class="text-sm font-medium text-gray-700">Required</label>
+  </div>
+
+  <!-- Default Value -->
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1"
+      >Default Value</label
+    >
+    <input
+      formControlName="defaultValue"
+      type="text"
+      placeholder="Enter default value"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400"
+    />
+  </div>
+
+  <!-- Min and Max -->
+  <div class="grid grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Min</label>
       <input
-        formControlName="name"
-        type="text"
-        placeholder="Enter field name"
+        type="number"
+        formControlName="min"
+        placeholder="Enter minimum value"
         class="w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400"
       />
     </div>
-  
-    <!-- Description -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Max</label>
       <input
-        formControlName="description"
-        type="text"
-        placeholder="Enter field description"
+        type="number"
+        formControlName="max"
+        placeholder="Enter maximum value"
         class="w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400"
       />
     </div>
-  
-    <!-- Placeholder -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Placeholder</label>
+  </div>
+
+  <!-- Options (Dropdown / Radio / Checkbox) -->
+  <div *ngIf="isAction" formArrayName="options" class="space-y-4">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Options</label>
+
+    <div
+      *ngFor="let option of options.controls; let i = index"
+      [formGroupName]="i"
+      class="flex gap-2 items-center"
+    >
       <input
-        formControlName="placeholder"
         type="text"
-        placeholder="Enter input placeholder"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400"
+        formControlName="label"
+        placeholder="Enter option label"
+        class="w-1/2 px-4 py-2 border border-gray-300 rounded placeholder-gray-400"
       />
-    </div>
-  
-    <!-- Required -->
-    <div class="flex items-center gap-2">
-      <input type="checkbox" formControlName="required" class="h-4 w-4" />
-      <label class="text-sm font-medium text-gray-700">Required</label>
-    </div>
-  
-    <!-- Default Value -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Default Value</label>
       <input
-        formControlName="defaultValue"
         type="text"
-        placeholder="Enter default value"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400"
+        formControlName="value"
+        placeholder="Enter option value"
+        class="w-1/2 px-4 py-2 border border-gray-300 rounded placeholder-gray-400"
       />
-    </div>
-  
-    <!-- Min and Max -->
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Min</label>
-        <input
-          type="number"
-          formControlName="min"
-          placeholder="Enter minimum value"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400"
-        />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Max</label>
-        <input
-          type="number"
-          formControlName="max"
-          placeholder="Enter maximum value"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400"
-        />
-      </div>
-    </div>
-  
-    <!-- Options (Dropdown / Radio / Checkbox) -->
-    <div *ngIf="isAction" formArrayName="options" class="space-y-4">
-      <label class="block text-sm font-medium text-gray-700 mb-1">Options</label>
-  
-      <div *ngFor="let option of options.controls; let i = index" [formGroupName]="i" class="flex gap-2 items-center">
-        <input
-          type="text"
-          formControlName="label"
-          placeholder="Enter option label"
-          class="w-1/2 px-4 py-2 border border-gray-300 rounded placeholder-gray-400"
-        />
-        <input
-          type="text"
-          formControlName="value"
-          placeholder="Enter option value"
-          class="w-1/2 px-4 py-2 border border-gray-300 rounded placeholder-gray-400"
-        />
-        <button type="button" (click)="removeOption(i)" class="text-red-500 font-bold text-xl">×</button>
-      </div>
-  
-      <button type="button" (click)="addOption()" class="mt-2 text-sm text-blue-600 hover:underline">
-        + Add Option
+      <button
+        type="button"
+        (click)="removeOption(i)"
+        class="text-red-500 font-bold text-xl"
+      >
+        ×
       </button>
     </div>
-  
-    <!-- Submit / Cancel -->
-    <div class="flex justify-end gap-2 mt-6">
-        <button type="button" (click)="onCancel()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">Cancel</button>
-      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Save</button>
-    </div>
-  </form>
-  
+
+    <button
+      type="button"
+      (click)="addOption()"
+      class="mt-2 text-sm text-blue-600 hover:underline"
+    >
+      + Add Option
+    </button>
+  </div>
+
+  <!-- Submit / Cancel -->
+  <div class="flex justify-end gap-2 mt-6">
+    <button
+      type="button"
+      (click)="onCancel()"
+      class="bg-gray-300 cursor-pointertext-gray-700 px-4 py-2 rounded-lg"
+    >
+      Cancel
+    </button>
+    <button type="submit" class="bg-blue-600 cursor-pointer text-white px-4 py-2 rounded-lg">
+      Save
+    </button>
+  </div>
+</form>
