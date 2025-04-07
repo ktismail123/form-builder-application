@@ -30,6 +30,7 @@
                 "glob": "**/*",
                 "input": "public"
               },
+              "src/_redirects",
               "src/favicon.ico",
               "src/assets"
             ],
