@@ -1,19 +1,19 @@
-<div class="flex h-screen overflow-hidden">
-    <!-- Left Pane: Field Groups -->
-    <div class="w-1/4 bg-white p-4 overflow-y-auto">
+<div class="flex flex-col md:flex-row h-screen overflow-hidden">
+    <!-- Left Pane -->
+    <div class="w-full md:w-1/4 bg-white p-4 overflow-y-auto h-64 md:h-auto">
       <app-left-pane></app-left-pane>
     </div>
   
-    <!-- Middle Pane: Form Canvas -->
-    <div class="flex-1 p-4 px-20 bg-gray-50 overflow-y-auto">
+    <!-- Middle Pane -->
+    <div class="flex-1 p-4 md:px-20 bg-gray-50 overflow-y-auto h-64 md:h-auto">
       <app-middle-pane></app-middle-pane>
     </div>
   
-    <!-- Right Pane: Element Library -->
-    <div class="w-1/4 bg-white p-4 overflow-y-auto">
+    <!-- Right Pane -->
+    <div class="w-full md:w-1/4 bg-white p-4 overflow-y-auto h-64 md:h-auto">
       @if(editMode){
-        <app-right-drawer/>
-      }@else {
+        <app-right-drawer></app-right-drawer>
+      } @else {
         <app-right-pane></app-right-pane>
       }
     </div>
